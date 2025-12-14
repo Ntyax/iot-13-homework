@@ -14,12 +14,19 @@ class XMLFileHandler:
     def _prettify(elem, level=0):
         i = "\n" + level * "  "
         if len(elem):
-            if not elem.text or not elem.text.strip(): elem.text = i + "  "
-            if not elem.tail or not elem.tail.strip(): elem.tail = i
+            if elem.text is None or not elem.text.strip(): 
+                elem.text = i + "  "
+            
+            if elem.tail is None or not elem.tail.strip(): 
+                elem.tail = i
+                
             for elem_child in elem:
                 XMLFileHandler._prettify(elem_child, level + 1)
-            if not elem.tail or not elem.tail.strip(): elem.tail = i
-        elif level and (not elem.tail or not elem.tail.strip()):
+                
+            if elem.tail is None or not elem.tail.strip(): 
+                elem.tail = i
+                
+        elif level and (elem.tail is None or not elem.tail.strip()):
             elem.tail = i
 
     def logged(mode):
@@ -67,27 +74,28 @@ class XMLFileHandler:
             print(f"File '{self.__filename}' successfully created!")
             return True
         except Exception as e:
-            raise FileCorruptedError(f"Error creating file: {str(e)}")
+            raise FileCorruptedError(f"Error creating file: {str(e)}") from e
     
     @logged(mode="console")
     def read(self):
         self._check_file_exists()
         try:
             return ET.parse(self.__filename).getroot()
-        except ET.ParseError:
-            raise FileCorruptedError(f"File '{self.__filename}' is corrupted!")
-        except PermissionError:
-            raise FileCorruptedError(f"Access denied to file '{self.__filename}'!")
+        except ET.ParseError as e:
+            raise FileCorruptedError(f"File '{self.__filename}' is corrupted!") from e
+        except PermissionError as e:
+            raise FileCorruptedError(f"Access denied to file '{self.__filename}'!") from e
     
     @logged(mode="file")
     def write(self, root_element):
+        self._check_file_exists() 
         try:
             self._prettify(root_element)
             ET.ElementTree(root_element).write(self.__filename, encoding="utf-8", xml_declaration=True)
             print(f"Data successfully written to file '{self.__filename}'!")
             return True
         except Exception as e:
-            raise FileCorruptedError(f"Error writing to file: {str(e)}")
+            raise FileCorruptedError(f"Error writing to file: {str(e)}") from e
 
     @logged(mode="console")
     def get_tasks_sorted_by_priority(self):
