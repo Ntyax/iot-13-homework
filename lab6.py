@@ -3,8 +3,13 @@ import os
 from datetime import datetime
 import sys
 
-class FileNotFoundError(Exception): pass
-class FileCorruptedError(Exception): pass
+class FileNotFoundError(Exception):
+    pass
+
+
+class FileCorruptedError(Exception):
+    pass
+
 
 class XMLFileHandler:
     
